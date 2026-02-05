@@ -1,28 +1,67 @@
-import './App.css';
-//import {Counter} from './components/Counter/Counter'
-import Dropdown from './components/Dropdown/Dropdown';
-import { ColorOptions } from './components/ColorPicker/Coloroptions';
-import { Container } from './components/Container/Container';
-    const colorPickerOptions = [
-  { label: 'red', color: '#F44336' },
-  { label: 'green', color: '#4CAF50' },
-  { label: 'blue', color: '#2196F3' },
-  { label: 'grey', color: '#607D8B' },
-  { label: 'pink', color: '#E91E63' },
-  { label: 'indigo', color: '#3F51B5' },
-];
+import React, { Component } from 'react';
+import { nanoid } from 'nanoid';
+import initialTodos from './components/ToDo/todo.json';
+import { Container } from './components/ToDo/Styles';
+import TodoList from './components/ToDo/TodoList';
+import TodoEditor from './components/ToDo/TodoEditor';
+import { Filter, Info } from './components/ToDo/FilterInfo';
 
-function App() {
-  return (
-    <div>
-      {/* <Dropdown /> */}
-      {/* <Counter initialValue={0}/> */}
+class App extends Component {
+  state = {
+    todos: initialTodos,
+    filter: '',
+  };
+
+  addTodo = (text) => {
+    const todo = { id: nanoid(), text, completed: false };
+    this.setState(({ todos }) => ({ todos: [todo, ...todos] }));
+  };
+
+  deleteTodo = (todoId) => {
+    this.setState(({ todos }) => ({
+      todos: todos.filter(todo => todo.id !== todoId),
+    }));
+  };
+
+  toggleCompleted = (todoId) => {
+    this.setState(({ todos }) => ({
+      todos: todos.map(todo => 
+        todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+      ),
+    }));
+  };
+
+  changeFilter = (e) => {
+    this.setState({ filter: e.target.value });
+  };
+
+  getVisibleTodos = () => {
+    const { filter, todos } = this.state;
+    return todos.filter(todo => 
+      todo.text.toLowerCase().includes(filter.toLowerCase())
+    );
+  };
+
+  render() {
+    const { todos, filter } = this.state;
+    const totalTodos = todos.length;
+    const completedTodos = todos.reduce((acc, todo) => (todo.completed ? acc + 1 : acc), 0);
+    const visibleTodos = this.getVisibleTodos();
+
+    return (
       <Container>
-        <ColorOptions options={ colorPickerOptions }/>
+        <h1>Мій Список Завдань 📝</h1>
+        <Info total={totalTodos} completed={completedTodos} />
+        <TodoEditor onAdd={this.addTodo} />
+        <Filter value={filter} onChange={this.changeFilter} />
+        <TodoList 
+          todos={visibleTodos} 
+          onDelete={this.deleteTodo} 
+          onToggle={this.toggleCompleted} 
+        />
       </Container>
-    </div >
-  );
+    );
+  }
 }
-
 
 export default App;
